@@ -1,0 +1,27 @@
+<!-- users templates users dashboard.html-->
+
+{% extends 'base.html' %}
+
+{% block content %}
+Currently charging, {{ user.username|default:'Guest' }}!<br>
+
+
+Total consumption: <br>
+
+
+{{request.consumption}} kW
+
+{% if request.user.vehicle.is_charging %}
+
+<br><br>
+<form action="/stop_charging" method="POST">
+    {% csrf_token %}    
+    <button id="stat-bnt" class="btn">Stop Charging</button>
+
+</form>
+
+{% endif %}
+
+
+
+{% endblock %}
