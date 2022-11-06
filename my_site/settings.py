@@ -28,11 +28,6 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
-CRONJOBS = [
-    
-    #('* * * * *', 'cron.check_for_vehicle_plates', '>> ' + os.path.join(BASE_DIR,'debug7.log' + ' 2>&1 '))
-]
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,7 +38,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'authenticate.apps.AuthenticateConfig',
-    'django_crontab',
 
 ]
 

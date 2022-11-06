@@ -25,9 +25,15 @@
         <li class="list-group-item"><b>Vehicle:</b> {{ user.vehicle.vehicle_id }}</li>
 
         {% if user.vehicle.is_charging %}
-        <li class="list-group-item"><b>Total last charge:</b> Currently charging</li>
+        <li class="list-group-item"><b>Total time last charge:</b> Currently charging</li>
+        <li class="list-group-item"><b>Average power in watts during the last charge:</b> Currently charging</li>
+        <li class="list-group-item"><b>Energy in kWh during the last charge:</b> Currently charging</li>
+
         {% else %}
-        <li class="list-group-item"><b>Total last charge:</b> {{ user.vehicle.total_time_last_session }}</li>
+        <li class="list-group-item"><b>Total time last charge:</b> {{ user.vehicle.total_time_last_session }}</li>
+        <li class="list-group-item"><b>Average power in watts during the last charge:</b> {{ user.vehicle.average_count_kw_last_session }}</li>
+        <li class="list-group-item"><b>Energy in kWh during the last charge: </b> {{ user.vehicle.average_count_kwh_last_session }}</li>
+
         {% endif %}
 
     </ul>
@@ -49,14 +55,24 @@
     <form action="/stats" method="POST">
         {% csrf_token %}    
         <button id="stat-bnt" class="btn">Check Charging Stats</button>
-    
     </form>
 
     {% endif %}
+
+
 
     {% else %}
     <h1 class="text-muted text-center mt-5 mb-5">Welcome to the Charging App h1>
     <h2 class="text-muted text-center mt-5">Login to see user information</h2>
     {% endif %}
+
+
+    {% if chart %}
+    <h1 class="text-muted text-center mt-3 mb-3">Plots</h1>
+    <img src="data:image/png;base64, {{ user.vehicle.plot|safe}}"
+    {% endif %}
+    
 </div>
+
 {% endblock content %}
+

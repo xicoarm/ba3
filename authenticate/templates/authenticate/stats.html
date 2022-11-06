@@ -6,19 +6,32 @@
 Currently charging, {{ user.username|default:'Guest' }}!<br>
 
 
-Total consumption: <br>
+ <br>
 
 
-{{request.consumption}} kW
+<div class="col-md-6 offset-md-3">
+    <h2 class="text-muted text-center mt-3 mb-3">Current Charging Power:</h1>
+    <h1 class="text-muted text-center mt-3 mb-3">{{request.consumption}} kW</h1>
+
+</div>
 
 {% if request.user.vehicle.is_charging %}
 
+<br><br>
+
+<form action="/stats" method="POST">
+    {% csrf_token %}    
+    <button id="stat-bnt" class="btn">Recalculate Stats</button>
+
+</form>
 <br><br>
 <form action="/stop_charging" method="POST">
     {% csrf_token %}    
     <button id="stat-bnt" class="btn">Stop Charging</button>
 
 </form>
+
+
 
 {% endif %}
 

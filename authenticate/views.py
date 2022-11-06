@@ -4,6 +4,7 @@ from django.contrib import messages
 from .forms import EditVehicleForm, SignUpForm, EditProfileForm, ChangePasswordForm
 from django.contrib.auth.models import User
 from authenticate.models import Vehicle
+from authenticate.models import Charge
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
@@ -17,8 +18,24 @@ from pymodbus.client import ModbusSerialClient as ModbusClient
 from pymodbus.transaction import ModbusRtuFramer
 from datetime import datetime
 
+from .utils import get_plot, get_plot_data
+
+
 def home(request):
-    return render(request, 'authenticate/home.html')
+
+    result = get_plot_data(request)
+    
+    x = result[0]
+    y = result[1]
+    chart = get_plot(x, y)
+
+    print('321312312312312')
+    save_chart = request.user.vehicle
+    save_chart.plot = chart
+    save_chart.save()
+    print('321312312312312')
+
+    return render(request, 'authenticate/home.html', {'chart':chart})
 
 
 def login_user(request):
@@ -142,8 +159,8 @@ def start_charging(request):
             status.save()
             return render(request, 'authenticate/home.html')
 
-        finally: 
-            GPIO.cleanup()
+        #finally: 
+            #GPIO.cleanup()
 	
 
 
@@ -171,10 +188,39 @@ def stop_charging(request):
         seconds = tdelta.total_seconds()
 
         request.user.vehicle.total_time_last_session = seconds
-
+        
 
         # kw count...
-        #kw_count
+        # get all charges that are newer than start time and older than stop time
+
+        list = Charge.objects.filter(snapshot_time__range=[then, now])
+        kw_count = 0
+        count = 0
+
+        for item in list:
+            kw_count = kw_count + item.current_kw
+            count = count + 1
+        
+      
+        if not count == 0:
+            average_kw_during_session = kw_count / count
+        else:
+            average_kw_during_session = 0
+        #average_kw_during_session = kw_count / 1
+
+        request.user.vehicle.average_count_kw_last_session = average_kw_during_session
+        
+        average_kwh_during_session = ((seconds / 3600) * average_kw_during_session) / 1000
+        
+        request.user.vehicle.average_count_kwh_last_session = average_kwh_during_session
+        
+        #count_kw_from_charging_start = datetime.strptime(request.authenticate.charge.snapshot_time, '%Y-%m-%d %H:%M:%S.%f')
+        
+
+
+        #request.user.average_count_kw_last_session = 1
+
+        
 
 
 
@@ -204,7 +250,18 @@ def stop_charging(request):
             status = request.user.vehicle
             status.is_charging  = False
             status.save()
-            return render(request, 'authenticate/home.html')
+
+            result = get_plot_data(request)
+    
+            x = result[0]
+            y = result[1]
+            chart = get_plot(x, y)
+
+            save_chart = request.user.vehicle
+            save_chart.plot = chart
+            save_chart.save()
+
+            return render(request, 'authenticate/home.html', {'chart':chart})
 
         finally: 
             GPIO.cleanup()
@@ -220,7 +277,7 @@ def stats(request):
     #unit= the slave unit this request is targeting
     #address= the starting address to read from
 
-    client = ModbusClient(method = 'rtu', port='/dev/ttyUSB1', stopbits = 1, bytesize = 8, parity = 'E' , baudrate= 9600)
+    client = ModbusClient(method = 'rtu', port='/dev/ttyUSB0', stopbits = 1, bytesize = 8, parity = 'E' , baudrate= 9600)
 
     #Connect to the serial modbus server
     connection = client.connect()
@@ -252,7 +309,7 @@ def kw_count():
     #unit= the slave unit this request is targeting
     #address= the starting address to read from
 
-    client = ModbusClient(method = 'rtu', port='/dev/ttyUSB1', stopbits = 1, bytesize = 8, parity = 'E' , baudrate= 9600)
+    client = ModbusClient(method = 'rtu', port='/dev/ttyUSB0', stopbits = 1, bytesize = 8, parity = 'E' , baudrate= 9600)
 
     #Connect to the serial modbus server
     connection = client.connect()
